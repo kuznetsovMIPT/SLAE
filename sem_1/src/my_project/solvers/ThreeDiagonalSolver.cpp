@@ -15,24 +15,26 @@ Slae::Solvers::solveThreeDiagonal(const Slae::Matrix::ThreeDiagonalMatrix &matri
         throw SlaeBaseExceptionCpp(buff.str());
     }
 
-    std::vector<std::array<double, 2>> extra_params{};
-    extra_params.reserve(n);
+    std::vector<std::array<double, 2>> extra_params{};  // Эту и следующую строчку стоит заменить на std::vector<std::array<double, 2>> extra_params(n)
+    extra_params.reserve(n);  // Эффект будет такой же.
 
     std::array<double, 2> pre_params{- matrix(0, 2) / matrix(0, 1),
                                      col[0] / matrix(0, 1)};
 
     extra_params.push_back(pre_params);  // this operation doesnt take a lot of time because extra_params.capacity == n
+    // А почему не сделать extra_params[0] = {- matrix(0, 2) / matrix(0, 1), col[0] / matrix(0, 1)};
 
     for (int i = 1; i < n - 1; ++i) {
         pre_params = {- matrix(i, 2) / (matrix(i, 0) * pre_params[0] + matrix(i, 1)),
                       (col[i] - matrix(i, 0) * pre_params[1]) / (matrix(i, 0) * pre_params[0] + matrix(i, 1))};
         extra_params.push_back(pre_params);
+        // Здесь я бы написал просто extra_params[i] = ...;
     }
 
     std::vector<double> result(n);
     result[n - 1] = (col[n-1] - matrix(n-1, 0) * pre_params[1]) / (matrix(n-1, 0) * pre_params[0] + matrix(n-1, 1));
     for (int i = n - 2; i >= 0; i--) {
-        auto params = extra_params[i];
+        auto params = extra_params[i];  // Здесь лучше использовать const auto&, чтобы не вызывать копирования, а еще лучше не инициализировать этого.
         result[i] = params[0] * result[i + 1] + params[1];
     }
     return result;
